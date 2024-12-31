@@ -8,6 +8,7 @@ const socket = io('http://localhost:3001');
 
 export default function Home() {
   const [selectedBox, setSelectedBox] = useState(0);
+  const [playing, setPlaying] = useState(false);
 
   const videos = [
     { id: 1, title: 'Video 1', url: 'https://www.youtube.com/embed/1' },
@@ -16,14 +17,24 @@ export default function Home() {
   ];
 
   useEffect(() => {
+    // Handle box movement
     socket.on('update', (boxIndex) => {
       setSelectedBox(boxIndex);
     });
 
-    return () => socket.off('update');
+    // Handle play and stop actions
+    socket.on('control', (action) => {
+      if (action === 'play') setPlaying(true);
+      if (action === 'stop') setPlaying(false);
+    });
+
+    return () => {
+      socket.off('update');
+      socket.off('control');
+    };
   }, []);
 
   return (
-    <VideoGrid videos={videos} selectedBox={selectedBox} />
+    <VideoGrid videos={videos} selectedBox={selectedBox} playing={playing} setPlaying={setPlaying} />
   );
 }

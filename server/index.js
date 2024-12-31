@@ -22,29 +22,33 @@ const io = new Server(server, {
 });
 
 let currentBox = 0;
-
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
 
   // Send the initial box state
-  socket.emit("update", currentBox);
+  socket.emit('update', currentBox);
 
-  // Listen for "move" events from the companion app
-  socket.on("move", (direction) => {
-    if (direction === "left" && currentBox > 0) {
+  // Listen for "move" events
+  socket.on('move', (direction) => {
+    if (direction === 'left' && currentBox > 0) {
       currentBox--;
-    } else if (direction === "right" && currentBox < 2) {
+    } else if (direction === 'right' && currentBox < 2) {
       currentBox++;
     }
 
-    // Broadcast the updated box to all connected clients
-    io.emit("update", currentBox);
+    io.emit('update', currentBox);
   });
 
-  socket.on("disconnect", () => {
-    console.log("A user disconnected:", socket.id);
+  // Listen for "control" events
+  socket.on('control', (action) => {
+    io.emit('control', action); // Broadcast control action to all clients
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
   });
 });
+
 
 const PORT = 3001;
 server.listen(PORT, () => {
